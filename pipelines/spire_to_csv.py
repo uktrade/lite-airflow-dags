@@ -6,6 +6,14 @@ from airflow.utils.dates import days_ago
 
 
 class OracleSqlAlchemyHook(OracleHook):
+    """
+    Override default oracle hook's get_conn
+    to use SQLAlchemy instead. This is to allow the same format connection
+    string as defined in environment variables to work everywhere.
+
+    The original class expects a cx_Oracle compatible connection string, not
+    a sqlalchemy one.
+    """
     def get_conn(self):
         conn_id = getattr(self, self.conn_name_attr)
         connection_uri = self.get_connection(conn_id).get_uri()
