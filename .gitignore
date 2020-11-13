@@ -19,7 +19,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-pipelines/libs/
 lib64/
 parts/
 sdist/
