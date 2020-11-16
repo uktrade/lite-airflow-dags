@@ -60,5 +60,8 @@ docs/_build/
 # PyBuilder
 target/
 db-data/
+local-data/
 .env
 *.iml
+
+.vscode/

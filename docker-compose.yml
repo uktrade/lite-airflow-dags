@@ -18,6 +18,7 @@ services:
     depends_on:
       - postgres
       - spire_tunnel
+      - data
     build:
       dockerfile: dockerfiles/airflow.Dockerfile
       context: .
@@ -65,5 +66,15 @@ services:
     ports:
       - "1521:1521"
 
+  data:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./local-data:/var/lib/postgresql/data
+
 volumes:
   db-data:
+  local-data:
