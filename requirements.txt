@@ -10,3 +10,6 @@ pandas==0.25.3            # via -r requirements.in
 python-dateutil==2.8.1    # via pandas
 pytz==2020.4              # via pandas
 six==1.15.0               # via python-dateutil
+s3fs==0.5.1
+boto3==1.11
+botocore==1.17.44
