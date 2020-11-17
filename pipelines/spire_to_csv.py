@@ -1,3 +1,5 @@
+from io import TextIOWrapper
+
 import sqlalchemy
 from airflow import DAG
 from airflow.hooks.base_hook import BaseHook
@@ -43,8 +45,7 @@ def query_to_csv(**kwargs):
             "wb",
         ) as csvfile:
             df.to_csv(
-                csvfile, index=False,
-                mode="wb"
+                TextIOWrapper(csvfile), index=False,
             )
 
 
