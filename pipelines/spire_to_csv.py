@@ -84,9 +84,9 @@ export_licence_details = get_query_by_filename("export_licence_details.sql")
 ela_case_details = get_query_by_filename("ela_case_details.sql")
 
 queries = {
-    "xview_export_licences": xview_export_licences,
-    "export_licence_details": export_licence_details,
-    "ela_case_details": ela_case_details,
+    "xview_export_licences": {"sql": xview_export_licences, "LIMIT": ""},
+    "export_licence_details": {"sql": export_licence_details, "LIMIT": ""},
+    "ela_case_details": {"sql": ela_case_details, "LIMIT": "FETCH FIRST 50 ROWS ONLY"},
 }
 
 with DAG(
@@ -104,11 +104,11 @@ with DAG(
         op_kwargs={"query": "select 1 from DUAL", "dest_file": None},
     )
 
-    for table, sql in queries.items():
+    for table, query in queries.items():
         task = PythonOperator(
             task_id=f"query_{table}_to_csv",
             provide_context=True,
             python_callable=query_to_csv,
-            op_kwargs={"query": sql.format(LIMIT=""), "dest_file": f"{table}.csv",},
+            op_kwargs={"query": query["sql"].format(LIMIT=query["LIMIT"]), "dest_file": f"{table}.csv",},
         )
         connectivity_check >> task

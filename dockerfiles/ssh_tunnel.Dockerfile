@@ -5,6 +5,8 @@ CMD ssh-add -l && ssh \
   -o StrictHostKeyChecking=no \
   -o ConnectTimeout=5 \
   -o ServerAliveInterval=30 \
+  -o ServerAliveCountMax=15 \
   -o KexAlgorithms=ecdh-sha2-nistp521 \
+  -o ExitOnForwardFailure=yes \
   -N ec2-user@$TUNNEL_HOST \
   -L *:$LOCAL_PORT:$REMOTE_HOST:$REMOTE_PORT
