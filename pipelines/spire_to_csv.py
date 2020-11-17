@@ -52,9 +52,9 @@ def query_to_csv(**kwargs):
     chunksize = 5000
     oracle = OracleSqlAlchemyHook()
     df = oracle.get_pandas_df(query, parameters=parameters, chunksize=chunksize)
-    s3_conn = BaseHook.get_connection("s3_default")
-    access_key = s3_conn.extra_dejson["aws_access_key_id"]
-    secret = s3_conn.extra_dejson["aws_secret_access_key"]
+    s3_conn = BaseHook.get_connection("aws_default")
+    access_key = s3_conn.login
+    secret = s3_conn.password
     bucket_name = s3_conn.extra_dejson["bucket_name"]
     s3 = s3fs.S3FileSystem(anon=False, key=access_key, secret=secret)
     logger = kwargs["ti"].log
