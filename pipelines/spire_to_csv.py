@@ -1,3 +1,5 @@
+from contextlib import closing
+
 from io import TextIOWrapper
 
 import sqlalchemy
@@ -7,6 +9,7 @@ from airflow.hooks.oracle_hook import OracleHook
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 import s3fs
+from pandas import DataFrame
 
 
 class OracleSqlAlchemyHook(OracleHook):
@@ -26,27 +29,52 @@ class OracleSqlAlchemyHook(OracleHook):
         return engine.connect()
 
 
+    def get_pandas_df(self, sql, parameters=None, chunksize=None):
+        """
+        Executes the sql and returns a pandas dataframe
+
+        :param sql: the sql statement to be executed (str) or a list of
+            sql statements to execute
+        :type sql: str or list
+        :param parameters: The parameters to render the SQL query with.
+        :type parameters: mapping or iterable
+        """
+        import pandas.io.sql as psql
+
+        with closing(self.get_conn()) as conn:
+            return psql.read_sql(sql, con=conn, params=parameters, chunksize=chunksize)
+
+
 def query_to_csv(**kwargs):
     query = kwargs["query"]
     parameters = kwargs.get("parameters", {})
     dest_file = kwargs["dest_file"]
-
+    chunksize=5000
     oracle = OracleSqlAlchemyHook()
-    df = oracle.get_pandas_df(query, parameters=parameters)
+    df = oracle.get_pandas_df(query, parameters=parameters, chunksize=chunksize)
     s3_conn = BaseHook.get_connection("s3_default")
     access_key = s3_conn.extra_dejson["aws_access_key_id"]
     secret = s3_conn.extra_dejson["aws_secret_access_key"]
     bucket_name = s3_conn.extra_dejson["bucket_name"]
     s3 = s3fs.S3FileSystem(anon=False, key=access_key, secret=secret)
+    logger = kwargs["ti"].log
+    logger.info(f"Running {kwargs['task_instance_key_str']} for {kwargs['ds']}")
 
     if dest_file:
         with s3.open(
-            f"{bucket_name}/{kwargs['ds']}/{kwargs['task_instance_key_str']}/{dest_file}.csv",
+            f"{bucket_name}/{kwargs['ds']}/{kwargs['task_instance_key_str']}/{dest_file}",
             "wb",
         ) as csvfile:
-            df.to_csv(
-                TextIOWrapper(csvfile), index=False,
-            )
+            first_chunk = True
+            tcsv = TextIOWrapper(csvfile)
+            chunk: DataFrame
+            for idx, chunk in enumerate(df):
+                logger.info(f"Processing chunk {idx} of {dest_file}")
+                chunk.to_csv(
+                    tcsv, index=False, chunksize=chunksize, header=first_chunk
+                )
+                first_chunk = False
+            tcsv.close()
 
 
 xview_export_licences = """
@@ -116,7 +144,7 @@ with DAG(
             provide_context=True,
             python_callable=query_to_csv,
             op_kwargs={
-                "query": sql.format(LIMIT="FETCH FIRST 100 ROWS ONLY"),
+                "query": sql.format(LIMIT=""),
                 "dest_file": f"{table}.csv",
             },
         )
