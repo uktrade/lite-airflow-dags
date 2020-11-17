@@ -1,4 +1,5 @@
 from contextlib import closing
+from pathlib import Path
 
 from io import TextIOWrapper
 
@@ -28,7 +29,6 @@ class OracleSqlAlchemyHook(OracleHook):
         engine = sqlalchemy.create_engine(connection_uri)
         return engine.connect()
 
-
     def get_pandas_df(self, sql, parameters=None, chunksize=None):
         """
         Executes the sql and returns a pandas dataframe
@@ -49,7 +49,7 @@ def query_to_csv(**kwargs):
     query = kwargs["query"]
     parameters = kwargs.get("parameters", {})
     dest_file = kwargs["dest_file"]
-    chunksize=5000
+    chunksize = 5000
     oracle = OracleSqlAlchemyHook()
     df = oracle.get_pandas_df(query, parameters=parameters, chunksize=chunksize)
     s3_conn = BaseHook.get_connection("s3_default")
@@ -61,78 +61,44 @@ def query_to_csv(**kwargs):
     logger.info(f"Running {kwargs['task_instance_key_str']} for {kwargs['ds']}")
 
     if dest_file:
-        with s3.open(
-            f"{bucket_name}/{kwargs['ds']}/{kwargs['task_instance_key_str']}/{dest_file}",
-            "wb",
-        ) as csvfile:
+        path = f"{bucket_name}/{kwargs['ds']}/{kwargs['task_instance_key_str']}/{dest_file}"
+        with s3.open(path, "wb",) as csvfile:
             first_chunk = True
             tcsv = TextIOWrapper(csvfile)
             chunk: DataFrame
             for idx, chunk in enumerate(df):
                 logger.info(f"Processing chunk {idx} of {dest_file}")
-                chunk.to_csv(
-                    tcsv, index=False, chunksize=chunksize, header=first_chunk
-                )
+                chunk.to_csv(tcsv, index=False, chunksize=chunksize, header=first_chunk)
                 first_chunk = False
             tcsv.close()
+        return f"s3://{path}"
 
 
-xview_export_licences = """
-SELECT
-    ID,
-    ELA_GRP_ID,
-    LICENCE_REF,
-    LICENCE_STATUS,
-    START_DATE,
-    END_DATE,
-    NULL, -- (XML_DATA).getClobVal() XML_DATA,
-    XP.GET(XML_DATA, '/*/OGL/OGL_TYPE') OGL_TYPE,
-    XP.GET(XML_DATA, '/*/OGL/OGL_TITLE') OGL_TITLE
-FROM SPIREMGR.EXPORT_LICENCES 
-ORDER BY ID {LIMIT}
-"""
+def get_query_by_filename(filename):
+    file_dir = Path(__file__).resolve().parent
+    return (file_dir / Path("./queries") / Path(filename)).read_text()
 
-export_licence_details = """
-SELECT
-    ID,
-    L_ID,
-    ELA_ID,
-    ELA_GRP_ID,
-    ELA_DETAIL_ID,
-    N_ID,
-    START_DATE,
-    END_DATE,
-    NULL, -- (XML_DATA).getClobVal() LICENCE_DETAIL_XML,
-    LICENCE_TYPE,
-    LICENCE_SUB_TYPE,
-    OGL_ID,
-    DI_ID,
-    EXPIRY_DATE,
-    LICENCE_REF,
-    LEGACY_FLAG,
-    CUSTOMS_EX_PROCEDURE,
-    CREATED_BY_WUA_ID,
-    UREF_VALUE,
-    COMMENCEMENT_DATE,
-    LITE_APP
-FROM SPIREMGR.EXPORT_LICENCE_DETAILS
-ORDER BY ID {LIMIT}
-"""
+
+xview_export_licences = get_query_by_filename("xview_export_licences.sql")
+export_licence_details = get_query_by_filename("export_licence_details.sql")
+ela_case_details = get_query_by_filename("ela_case_details.sql")
 
 queries = {
     "xview_export_licences": xview_export_licences,
     "export_licence_details": export_licence_details,
+    "ela_case_details": ela_case_details,
 }
 
 with DAG(
     "spire2csv",
-    description="Simple tutorial DAG",
+    description="Upload SPIRE Tables to S3",
     schedule_interval="0 12 * * *",
     start_date=days_ago(2),
     catchup=False,
 ) as spire2csv:
     connectivity_check = PythonOperator(
         task_id="connectivity_check",
+        do_xcom_push=True,
         python_callable=query_to_csv,
         provide_context=True,
         op_kwargs={"query": "select 1 from DUAL", "dest_file": None},
@@ -143,9 +109,6 @@ with DAG(
             task_id=f"query_{table}_to_csv",
             provide_context=True,
             python_callable=query_to_csv,
-            op_kwargs={
-                "query": sql.format(LIMIT=""),
-                "dest_file": f"{table}.csv",
-            },
+            op_kwargs={"query": sql.format(LIMIT=""), "dest_file": f"{table}.csv",},
         )
         connectivity_check >> task
