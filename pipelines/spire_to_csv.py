@@ -95,6 +95,7 @@ with DAG(
     schedule_interval="0 12 * * *",
     start_date=days_ago(2),
     catchup=False,
+    concurrency=3,
 ) as spire2csv:
     connectivity_check = PythonOperator(
         task_id="connectivity_check",
@@ -107,8 +108,12 @@ with DAG(
     for table, query in queries.items():
         task = PythonOperator(
             task_id=f"query_{table}_to_csv",
+            task_concurrency=1,
             provide_context=True,
             python_callable=query_to_csv,
-            op_kwargs={"query": query["sql"].format(LIMIT=query["LIMIT"]), "dest_file": f"{table}.csv",},
+            op_kwargs={
+                "query": query["sql"].format(LIMIT=query["LIMIT"]),
+                "dest_file": f"{table}.csv",
+            },
         )
         connectivity_check >> task
