@@ -51,6 +51,7 @@ def csv_to_postgres(**kwargs):
     print(f"Found {len(files_to_load)} files")
 
     with closing(PostgresSqlAlchemyHook().get_conn()) as pg:
+        pg.execute("set session_replication_role to 'replica';")
         for index, file_key in enumerate(files_to_load):
             filename = file_key.split("/")[-1]
             table_name = filename.split(".")[0]
@@ -65,6 +66,8 @@ def csv_to_postgres(**kwargs):
                     f"[{index + 1}] Loading file contents into table: {table_name} ..."
                 )
                 df.to_sql(table_name, pg, if_exists="replace")
+
+        pg.execute("set session_replication_role to 'origin';")
 
 
 with DAG(
