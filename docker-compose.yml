@@ -28,6 +28,7 @@ services:
       - LOAD_EX=n
       - EXECUTOR=Local
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AWS_REGION=eu-west-2
     logging:
       options:
         max-size: 10m
