@@ -18,7 +18,7 @@ services:
     depends_on:
       - postgres
       - spire_tunnel
-      - data
+      - spire_local
     build:
       dockerfile: dockerfiles/airflow.Dockerfile
       context: .
@@ -30,7 +30,6 @@ services:
       - EXECUTOR=Local
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       - AWS_REGION=eu-west-2
-      - FERNET_KEY=${FERNET_KEY}
     logging:
       options:
         max-size: 10m
@@ -68,15 +67,15 @@ services:
     ports:
       - "1521:1521"
 
-  data:
+  spire_local:
     image: postgres:9.6
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=postgres
     volumes:
-      - ./local-data:/var/lib/postgresql/data
+      - ./spire-local:/var/lib/postgresql/data
 
 volumes:
   db-data:
-  local-data:
+  spire-local:

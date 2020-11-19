@@ -60,7 +60,7 @@ docs/_build/
 # PyBuilder
 target/
 db-data/
-local-data/
+spire-local/
 .env
 *.iml
 
