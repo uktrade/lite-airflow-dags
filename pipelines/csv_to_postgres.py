@@ -5,7 +5,6 @@ import pandas as pd
 
 from contextlib import closing
 from datetime import date
-from environs import Env
 from s3fs.core import S3FileSystem
 
 from airflow import DAG
@@ -14,14 +13,6 @@ from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ENV_FILE = os.path.join(BASE_DIR, ".env")
-if os.path.exists(ENV_FILE):
-    Env.read_env(ENV_FILE)
-
-env = Env()
-FILES_TO_SKIP = env.list("FILES_TO_SKIP", [])
 
 logger = logging.getLogger("airflow.task")
 
@@ -64,6 +55,7 @@ def csv_to_postgres(**kwargs):
     s3 = S3FileSystem(anon=False, key=access_key, secret=secret)
 
     files_to_load = get_objects_by_date(s3, bucket_name)
+    files_to_skip = os.getenv("FILES_TO_SKIP", default="").split(",")
 
     with closing(PostgresSqlAlchemyHook().get_conn()) as pg:
         pg.execute("set session_replication_role to 'replica';")
@@ -71,7 +63,7 @@ def csv_to_postgres(**kwargs):
             filename = file_key.split("/")[-1]
             table_name = filename.split(".")[0]
 
-            if filename in FILES_TO_SKIP:
+            if filename in files_to_skip:
                 continue
 
             with s3.open(file_key, "rb") as fp:
