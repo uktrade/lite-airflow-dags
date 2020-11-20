@@ -60,5 +60,8 @@ docs/_build/
 # PyBuilder
 target/
 db-data/
+spire-local/
 .env
 *.iml
+
+.vscode/
