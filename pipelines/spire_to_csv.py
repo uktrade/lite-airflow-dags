@@ -1,16 +1,20 @@
 from contextlib import closing
+from io import TextIOWrapper
 from pathlib import Path
 
-from io import TextIOWrapper
-
+import pandas as pd
+import s3fs
 import sqlalchemy
 from airflow import DAG
 from airflow.hooks.base_hook import BaseHook
 from airflow.hooks.oracle_hook import OracleHook
+from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.sensors import S3KeySensor
 from airflow.utils.dates import days_ago
-import s3fs
 from pandas import DataFrame
+
+s3_conn = BaseHook.get_connection("aws_default")
 
 
 class OracleSqlAlchemyHook(OracleHook):
@@ -52,7 +56,6 @@ def query_to_csv(**kwargs):
     chunksize = 5000
     oracle = OracleSqlAlchemyHook()
     df = oracle.get_pandas_df(query, parameters=parameters, chunksize=chunksize)
-    s3_conn = BaseHook.get_connection("aws_default")
     access_key = s3_conn.login
     secret = s3_conn.password
     bucket_name = s3_conn.extra_dejson["bucket_name"]
@@ -117,3 +120,58 @@ with DAG(
             },
         )
         connectivity_check >> task
+
+
+class PostgresSqlAlchemyHook(PostgresHook):
+    def get_conn(self):
+        connection_uri = self.get_connection("spire_local").get_uri()
+        engine = sqlalchemy.create_engine(connection_uri, paramstyle="format")
+        return engine.connect()
+
+
+def csv_to_postgres(**kwargs):
+    access_key = s3_conn.login
+    secret = s3_conn.password
+    s3 = s3fs.S3FileSystem(anon=False, key=access_key, secret=secret)
+    logger = kwargs["ti"].log
+    file_key = kwargs["file_key"]
+    table_name = kwargs["table_name"]
+
+    with closing(PostgresSqlAlchemyHook().get_conn()) as pg:
+        pg.execute("set session_replication_role to 'replica';")
+
+        with s3.open(file_key, "rb") as fp:
+            logger.info(f"Reading contents of file: {file_key} ...")
+            df = pd.read_csv(fp)
+            logger.info(f"Loading file contents into table: {table_name} ...")
+            df.to_sql(table_name, pg, if_exists="replace", method="multi")
+
+        pg.execute("set session_replication_role to 'origin';")
+
+
+with DAG(
+    "csv2postgres",
+    description="Read CSV files from S3 and load into Postgres db",
+    schedule_interval="0 12 * * *",
+    start_date=days_ago(2),
+    catchup=False,
+) as csv2postgres:
+    bucket_name = s3_conn.extra_dejson["bucket_name"]
+    file_key = "s3://{{params.bucket_name}}/{{ds}}/spire2csv__query_{{params.table}}_to_csv__{{ds_nodash}}/{{params.table}}.csv"
+    for table, query in queries.items():
+        check_for_files = S3KeySensor(
+            task_id=f"check_s3_for_{table}_file",
+            bucket_key=file_key,
+            poke_interval=60,
+            params={"table": table, "bucket_name": bucket_name},
+            timeout=60 * 60 * 12,  # timeout after 12 hours of waiting for the file
+        )
+
+        csv2postgres_task = PythonOperator(
+            task_id=f"{table}_csv_to_db",
+            python_callable=csv_to_postgres,
+            provide_context=True,
+            params={"table": table, "bucket_name": bucket_name},
+            op_kwargs={"file_key": file_key, "table_name": table},
+        )
+        check_for_files >> csv2postgres_task
