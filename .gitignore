@@ -65,3 +65,8 @@ spire-local/
 *.iml
 
 .vscode/
+/airflow.cfg
+/airflow-webserver.pid
+/unittests.cfg
+/airflow.db
+/logs/
