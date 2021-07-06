@@ -112,3 +112,16 @@ loads them into the airflow dag bag.
 
 You will need to configure any connections you have set up locally in the paas-airflow
 admin interface.
+
+##Running airflow locally
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+#pip install -r requirements
+pip install apache-airflow
+export AIRFLOW_HOME=${PWD} # This directory
+python -m airflow db init
+python -m airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
+python -m airflow webserver --port 8080
+```

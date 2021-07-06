@@ -63,6 +63,7 @@ db-data/
 spire-local/
 .env
 *.iml
+*.sql
 
 .vscode/
 /airflow.cfg
@@ -70,3 +71,5 @@ spire-local/
 /unittests.cfg
 /airflow.db
 /logs/
+/.venv/
+/.idea/

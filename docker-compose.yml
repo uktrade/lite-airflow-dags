@@ -1,42 +1,17 @@
 version: '3.7'
 services:
 
-  postgres:
-    image: postgres:9.6
-    environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
-    logging:
-      options:
-        max-size: 10m
-        max-file: "3"
-    volumes:
-      - ./db-data:/var/lib/postgresql/data
-
   webserver:
-    depends_on:
-      - postgres
-      - spire_tunnel
-      - spire_local
     build:
       dockerfile: dockerfiles/airflow.Dockerfile
       context: .
     restart: always
-    env_file:
-      - .env
-    environment:
-      - LOAD_EX=n
-      - EXECUTOR=Local
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AWS_REGION=eu-west-2
     logging:
       options:
         max-size: 10m
         max-file: "3"
     volumes:
       - ./pipelines:/usr/local/airflow/dags
-      - ./requirements.txt:/requirements.txt
     ports:
       - "8080:8080"
     command: webserver
@@ -45,37 +20,3 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
-
-  spire_tunnel:
-    stdin_open: true
-    build:
-      dockerfile: dockerfiles/ssh_tunnel.Dockerfile
-      context: .
-    volumes:
-      - $SSH_AUTH_SOCK:/ssh-agent
-      - type: bind
-        source: $HOME/.ssh/id_rsa
-        target: /root/.ssh/id_rsa
-        read_only: true
-    env_file:
-      - .env
-    environment:
-      - LOCAL_PORT=1521
-      - REMOTE_HOST=localhost
-      - REMOTE_PORT=1521
-      - SSH_AUTH_SOCK=/ssh-agent
-    ports:
-      - "1521:1521"
-
-  spire_local:
-    image: postgres:9.6
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=postgres
-    volumes:
-      - ./spire-local:/var/lib/postgresql/data
-
-volumes:
-  db-data:
-  spire-local:

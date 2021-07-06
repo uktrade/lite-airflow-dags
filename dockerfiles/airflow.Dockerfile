@@ -12,5 +12,7 @@ RUN curl -L \
     && alien -i /tmp/oracle-instantclient19.9-basic-19.9.0.0.0-1.x86_64.rpm \
     && rm /tmp/oracle-instantclient19.9-basic-19.9.0.0.0-1.x86_64.rpm
 
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 USER airflow
