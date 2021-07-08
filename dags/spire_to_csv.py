@@ -65,7 +65,10 @@ def query_to_csv(**kwargs):
 
     if dest_file:
         path = f"{bucket_name}/{kwargs['ds']}/{kwargs['task_instance_key_str']}/{dest_file}"
-        with s3.open(path, "wb",) as csvfile:
+        with s3.open(
+            path,
+            "wb",
+        ) as csvfile:
             first_chunk = True
             tcsv = TextIOWrapper(csvfile)
             chunk: DataFrame

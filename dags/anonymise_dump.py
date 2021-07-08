@@ -1,12 +1,13 @@
 from faker import Faker
+
 fake = Faker()
 import yaml
 
 with open("anonymise_this.yaml") as f:
     tables_to_anon = yaml.load(f, Loader=yaml.BaseLoader)
 
-class Anonymiser:
 
+class Anonymiser:
     def __init__(self):
         self.current_table = None
 
@@ -41,7 +42,7 @@ class Anonymiser:
                 elif column_to_anon == "phone_number":
                     value = fake.phone_number()
                 index_to_change = fields.index(column_to_anon)
-                if index_to_change == len(cols) -1:
+                if index_to_change == len(cols) - 1:
                     cols[fields.index(column_to_anon)] = value + "\n"
                 else:
                     cols[fields.index(column_to_anon)] = value
