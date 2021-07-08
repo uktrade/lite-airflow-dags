@@ -1,9 +1,14 @@
+import os
+
 from faker import Faker
 
 fake = Faker()
 import yaml
 
-with open("anonymise_this.yaml") as f:
+import pathlib
+script_dir = pathlib.Path(__file__).parent.resolve()
+
+with open(os.path.join(script_dir, "anonymise_this.yaml")) as f:
     tables_to_anon = yaml.load(f, Loader=yaml.BaseLoader)
 
 
