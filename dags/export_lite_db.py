@@ -31,4 +31,14 @@ anonymise_operator = PythonOperator(
     task_id="anonymise", python_callable=anonymise, dag=dag
 )
 
-export_lite_db_operator >> anonymise_operator
+
+push_to_s3_operator = BashOperator(
+    task_id="push_to_s3", bash_command="echo push_to_s3_operator placeholder", dag=dag
+)
+
+
+delete_dumps_operator = BashOperator(
+    task_id="delete_dumps", bash_command="echo delete_dumps", dag=dag
+)
+
+export_lite_db_operator >> anonymise_operator >> push_to_s3_operator >> delete_dumps_operator
