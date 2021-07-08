@@ -1,7 +1,0 @@
-tables:
-  - parties_party:
-      primary_key: id
-      fields:
-        - name:
-            provider:
-              name: fake.name

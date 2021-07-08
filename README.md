@@ -113,7 +113,7 @@ loads them into the airflow dag bag.
 You will need to configure any connections you have set up locally in the paas-airflow
 admin interface.
 
-##Running airflow locally
+## Running airflow locally
 
 ```bash
 python3 -m venv .venv
@@ -124,4 +124,17 @@ export AIRFLOW_HOME=${PWD} # This directory
 python -m airflow db init
 python -m airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
 python -m airflow webserver --port 8080
+```
+
+## Testing export_lite_db
+
+You can manually test the dump_anonamiser by using a local copy of the 
+lite-api database.
+
+1. Delete the db from docker. In the lite-api directory run `docker-compose rm db`
+1. Run up a new copy of the database. `docker-compose up db`
+1. Connect and confirm that is is empty. `psql -h localhost -p 5462 -d lite-api -U postgres`, 
+   followed by `\dt`.
+1. Upload the anonamised data.  
+   `PGUSER='postgres' PGPASSWORD='password' psql -d lite-api -h localhost -p 5462 -f anonymised.sql`
 ```
