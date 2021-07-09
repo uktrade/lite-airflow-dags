@@ -54,9 +54,9 @@ class Anonymiser:
             return "\t".join(cols)
         return line
 
-    def anonymise(self):
-        with open("outfile.sql") as dump_f:
-            with open("anonymised.sql", "w") as anon_f:
+    def anonymise(self, outfile="outfile.sql", anonfile="anonymised.sql"):
+        with open(outfile) as dump_f:
+            with open(anonfile, "w") as anon_f:
                 line = dump_f.readline()
                 while line:
                     new_line = self.process_line(line)
