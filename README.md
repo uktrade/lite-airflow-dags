@@ -118,17 +118,8 @@ admin interface.
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-#pip install -r requirements
-pip install apache-airflow
-export AIRFLOW_HOME=${PWD} # This directory
-export AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:password@localhost:5462/airflow
-export AIRFLOW_VAR_LITE_DB_USER=postgres
-export AIRFLOW_VAR_LITE_DB_PASSWORD=password
-export AIRFLOW_VAR_LITE_DB_HOST=localhost
-export AIRFLOW_VAR_LITE_DB_PORT=5462
-export AIRFLOW_VAR_LITE_DB_DATABASE=lite-api
-export AIRFLOW_VAR_SQL_DUMPFILE=/tmp/outfile.sql
-export AIRFLOW_VAR_SQL_ANONFILE=/tmp/anonymised.sql
+pip install -r requirements.txt
+export $(grep -v '^#' .env | xargs)  # Export the .env file
 airflow db init
 airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
 airflow scheduler > scheduler_log.log &
