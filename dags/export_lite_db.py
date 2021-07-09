@@ -1,14 +1,16 @@
 from datetime import datetime
 
 from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
 from anonymise_dump import Anonymiser
 
 
-def anonymise(ds, **kwargs):
-    anonymiser = Anonymiser()
-    anonymiser.anonymise()
+def anonymise(**kwargs):
+    print("======> Anonymising the database ....")
+    # anonymiser = Anonymiser()
+    # anonymiser.anonymise()
+
 
 
 with DAG(
@@ -39,9 +41,11 @@ with DAG(
         task_id="delete_dumps", bash_command="echo delete_dumps", dag=dag
     )
 
-    (
-        dump_db_operator
-        >> anonymise_operator
-        >> push_to_s3_operator
-        >> delete_dumps_operator
-    )
+    # (
+    #     dump_db_operator
+    #     >> anonymise_operator
+    #     >> push_to_s3_operator
+    #     >> delete_dumps_operator
+    # )
+
+    anonymise_operator
