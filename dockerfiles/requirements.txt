@@ -29,3 +29,4 @@ typing-extensions==3.7.4.3  # via aiohttp, aioitertools, yarl
 urllib3==1.25.11          # via botocore
 wrapt==1.12.1             # via aiobotocore
 yarl==1.6.3               # via aiohttp
+faker==4.0
