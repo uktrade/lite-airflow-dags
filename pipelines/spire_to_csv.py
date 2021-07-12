@@ -3,13 +3,12 @@ from io import TextIOWrapper
 from pathlib import Path
 
 import pandas as pd
-import s3fs
 import sqlalchemy
 from airflow import DAG
 from airflow.hooks.base_hook import BaseHook
 from airflow.hooks.oracle_hook import OracleHook
 from airflow.hooks.postgres_hook import PostgresHook
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, PythonVirtualenvOperator
 from airflow.operators.sensors import S3KeySensor
 from airflow.utils.dates import days_ago
 from pandas import DataFrame
@@ -50,6 +49,7 @@ class OracleSqlAlchemyHook(OracleHook):
 
 
 def query_to_csv(**kwargs):
+    import s3fs
     query = kwargs["query"]
     parameters = kwargs.get("parameters", {})
     dest_file = kwargs["dest_file"]
@@ -100,7 +100,13 @@ with DAG(
     catchup=False,
     concurrency=3,
 ) as spire2csv:
-    connectivity_check = PythonOperator(
+    connectivity_check = PythonVirtualenvOperator(
+        requirements=[
+            "pandas<1.0.0",
+            "cx_Oracle<9.0.0",
+            "s3fs<0.6.0",
+            "aiobotocore[boto3]",
+        ],
         task_id="connectivity_check",
         do_xcom_push=True,
         python_callable=query_to_csv,
@@ -130,6 +136,7 @@ class PostgresSqlAlchemyHook(PostgresHook):
 
 
 def csv_to_postgres(**kwargs):
+    import s3fs
     access_key = s3_conn.login
     secret = s3_conn.password
     s3 = s3fs.S3FileSystem(anon=False, key=access_key, secret=secret)
