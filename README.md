@@ -125,7 +125,7 @@ airflow users  create --role Admin --username admin --email admin --firstname ad
 airflow scheduler > scheduler_log.log &
 airflow webserver --port 8080
 ```
-TH
+
 ## Testing export_lite_db
 
 You can manually test the dump_anonamiser by using a local copy of the 
