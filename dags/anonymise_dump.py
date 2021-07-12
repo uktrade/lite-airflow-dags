@@ -33,7 +33,14 @@ class Anonymiser:
             fields = self.current_table[1]
             for column_to_anon in columns_to_anon:
                 value = "fake"
-                if column_to_anon in ["name", "signatory_name_euu", "consignee_name", "contact_name"]:
+                if column_to_anon == "name" and self.current_table[0] == "organisation":
+                    value = fake.company()
+                elif column_to_anon in [
+                    "name",
+                    "signatory_name_euu",
+                    "consignee_name",
+                    "contact_name",
+                ]:
                     value = fake.name()
                 elif column_to_anon == "first_name":
                     value = fake.first_name()
