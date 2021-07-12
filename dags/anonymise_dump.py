@@ -33,7 +33,7 @@ class Anonymiser:
             fields = self.current_table[1]
             for column_to_anon in columns_to_anon:
                 value = "fake"
-                if column_to_anon == "name":
+                if column_to_anon in ["name", "signatory_name_euu", "consignee_name", "contact_name"]:
                     value = fake.name()
                 elif column_to_anon == "first_name":
                     value = fake.first_name()
@@ -41,12 +41,20 @@ class Anonymiser:
                     value = fake.last_name()
                 elif column_to_anon == "address":
                     value = fake.address().replace("\n", ", ")
+                elif column_to_anon == "address_line_1":
+                    value = fake.street_address()
+                elif column_to_anon in ["address_line_2", "region", "city"]:
+                    value = fake.city()
+                elif column_to_anon == "postcode":
+                    value = fake.postcode()
                 elif column_to_anon == "website":
                     value = fake.domain_name(2)
-                elif column_to_anon == "email":
+                elif column_to_anon in ["email", "contact_email"]:
                     value = fake.company_email()
-                elif column_to_anon == "phone_number":
+                elif column_to_anon in ["phone_number", "contact_telephone"]:
                     value = fake.phone_number()
+                elif column_to_anon == "details":
+                    value = fake.paragraph(nb_sentences=5)
                 index_to_change = fields.index(column_to_anon)
                 if index_to_change == len(cols) - 1:
                     cols[fields.index(column_to_anon)] = value + "\n"
