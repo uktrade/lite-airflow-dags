@@ -1,23 +1,20 @@
 from datetime import datetime
 
 from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
-from airflow.operators.python_operator import PythonOperator
-from anonymise_dump import Anonymiser
 from airflow.models import Variable
-
-import boto3
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from anonymise_dump import DBAnonymiser
 from boto3.session import Session
-
-session = Session(
-    aws_access_key_id=Variable.get("aws_access_key_id"),
-    aws_secret_access_key=Variable.get("aws_secret_access_key"),
-    region_name=Variable.get("aws_region"),
-)
-s3 = session.resource("s3")
 
 
 def push_to_s3(ds, **kwargs):
+    session = Session(
+        aws_access_key_id=Variable.get("aws_access_key_id"),
+        aws_secret_access_key=Variable.get("aws_secret_access_key"),
+        region_name=Variable.get("aws_region"),
+    )
+    s3 = session.resource("s3")
     s3.meta.client.upload_file(
         Filename=Variable.get("sql_anonfile"),
         Bucket=Variable.get("bucket_name"),
@@ -26,7 +23,7 @@ def push_to_s3(ds, **kwargs):
 
 
 def anonymise(ds, **kwargs):
-    anonymiser = Anonymiser()
+    anonymiser = DBAnonymiser()
     anonymiser.anonymise(Variable.get("sql_dumpfile"), Variable.get("sql_anonfile"))
 
 
@@ -40,11 +37,7 @@ with DAG(
 
     dump_db_operator = BashOperator(
         task_id="dump_db",
-        bash_command=f"PGUSER={Variable.get('lite_db_user')} "
-        f"PGPASSWORD={Variable.get('lite_db_password')} "
-        f"pg_dump -h {Variable.get('lite_db_host')} "
-        f"-p {Variable.get('lite_db_port')} "
-        f"{Variable.get('lite_db_database')} > "
+        bash_command=f"pg_dump {Variable.get('lite_db_url')} >"
         f"{Variable.get('sql_dumpfile')}",
         dag=dag,
     )

@@ -115,12 +115,13 @@ admin interface.
 
 ## Running airflow locally
 
-Drop and re-create any previous airflow databases before setting up airflow, for example:
+Disconnect, drop and re-create any previous airflow databases before setting up airflow, for example:
 
 ```bash
 psql -h localhost -p 5462 -U postgres
-drop database airflow;
-create database airflow;
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'airflow';
+DROP database airflow;
+CREATE database airflow;
 ```
 
 Kill any other processes hogging port 8080:
@@ -132,6 +133,10 @@ kill --9 the_pid
 ```
 
 ### Version 1
+
+This section is kept to support ops instances still on Airflow 1. Generally
+refer to Version 2 (below). Delete  this section once we are no longer using
+version 1 of Airflow.
 
 See https://airflow.apache.org/docs/apache-airflow/1.10.12/start.html .
 
@@ -161,15 +166,14 @@ airflow scheduler > scheduler_log.log &
 airflow webserver --port 8080
 ```
 
-## Testing export_lite_db
+## Uploading the anonymised data
 
 You can manually test the dump_anonamiser by using a local copy of the 
 lite-api database.
 
-1. Delete the db from docker. In the lite-api directory run `docker-compose rm db`
-1. Run up a new copy of the database. `docker-compose up db`
-1. Connect and confirm that is is empty. `psql -h localhost -p 5462 -d lite-api -U postgres`, 
-   followed by `\dt`.
-1. Upload the anonamised data.  
+1. Run the database. `docker-compose up db`
+1. Connect and recreate the database. `psql -h localhost -p 5462 -U postgres`, 
+   followed by `drop database lite-api;` and then `create database lite-api;`.
+1. Upload the anonymised data.  
    `PGUSER='postgres' PGPASSWORD='password' psql -d lite-api -h localhost -p 5462 -f anonymised.sql`
 ```
