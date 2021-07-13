@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
-from anonymise_dump import DBAnonymiser
+from anonymiser import DBAnonymiser
 from boto3.session import Session
 
 

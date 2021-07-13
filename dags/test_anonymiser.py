@@ -1,4 +1,4 @@
-from anonymise_dump import DBAnonymiser
+from anonymiser import DBAnonymiser
 
 anonymiser = DBAnonymiser()
 anonymiser.anonymise()
