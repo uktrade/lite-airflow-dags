@@ -115,6 +115,41 @@ admin interface.
 
 ## Running airflow locally
 
+Drop and re-create any previous airflow databases before setting up airflow, for example:
+
+```bash
+psql -h localhost -p 5462 -U postgres
+drop database airflow;
+create database airflow;
+```
+
+Kill any other processes hogging port 8080:
+
+```bash
+netstat -vanp tcp | grep pid
+netstat -vanp tcp | grep 8080
+kill --9 the_pid
+```
+
+### Version 1
+
+See https://airflow.apache.org/docs/apache-airflow/1.10.12/start.html .
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install apache-airflow==1.10.12  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-1.10.12/constraints-3.7.txt"
+pip install 'apache-airflow[postgres]'
+pip install boto3==1.14.44
+pip install Faker==4.0.0
+export $(grep -v '^#' .env | xargs)  # Export the .env file
+airflow initdb
+airflow scheduler > scheduler_log.log &
+airflow webserver -p 8080
+```
+
+### Version 2
+
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
