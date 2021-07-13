@@ -112,3 +112,68 @@ loads them into the airflow dag bag.
 
 You will need to configure any connections you have set up locally in the paas-airflow
 admin interface.
+
+## Running airflow locally
+
+Disconnect, drop and re-create any previous airflow databases before setting up airflow, for example:
+
+```bash
+psql -h localhost -p 5462 -U postgres
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'airflow';
+DROP database airflow;
+CREATE database airflow;
+```
+
+Kill any other processes hogging port 8080:
+
+```bash
+netstat -vanp tcp | grep pid
+netstat -vanp tcp | grep 8080
+kill --9 the_pid
+```
+
+### Version 1
+
+This section is kept to support ops instances still on Airflow 1. Generally
+refer to Version 2 (below). Delete  this section once we are no longer using
+version 1 of Airflow.
+
+See https://airflow.apache.org/docs/apache-airflow/1.10.12/start.html .
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install apache-airflow==1.10.12  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-1.10.12/constraints-3.7.txt"
+pip install 'apache-airflow[postgres]'
+pip install boto3==1.14.44
+pip install Faker==4.0.0
+export $(grep -v '^#' .env | xargs)  # Export the .env file
+airflow initdb
+airflow scheduler > scheduler_log.log &
+airflow webserver -p 8080
+```
+
+### Version 2
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+export $(grep -v '^#' .env | xargs)  # Export the .env file
+airflow db init
+airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
+airflow scheduler > scheduler_log.log &
+airflow webserver --port 8080
+```
+
+## Uploading the anonymised data
+
+You can manually test the dump_anonamiser by using a local copy of the 
+lite-api database.
+
+1. Run the database. `docker-compose up db`
+1. Connect and recreate the database. `psql -h localhost -p 5462 -U postgres`, 
+   followed by `drop database lite-api;` and then `create database lite-api;`.
+1. Upload the anonymised data.  
+   `PGUSER='postgres' PGPASSWORD='password' psql -d lite-api -h localhost -p 5462 -f anonymised.sql`
+```

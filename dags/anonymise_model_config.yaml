@@ -1,0 +1,36 @@
+parties_party:
+  - name
+  - address
+  - website
+  - email
+  - phone_number
+  - signatory_name_euu
+  - details
+users_baseuser:
+  - first_name
+  - last_name
+  - email
+  - phone_number
+address:
+  - address_line_1
+  - address_line_2
+  - region
+  - postcode
+  - city
+  - address
+external_data_denial:
+  - name
+  - address
+  - consignee_name
+organisation:
+  - name
+  - phone_number
+  - website
+  - eori_number
+  - sic_number
+  - vat_number
+  - registration_number
+end_user_advisories_enduseradvisoryquery:
+  - contact_name
+  - contact_email
+  - contact_telephone
