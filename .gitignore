@@ -73,3 +73,4 @@ spire-local/
 /logs/
 /.venv/
 /.idea/
+vcap.json

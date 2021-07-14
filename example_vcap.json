@@ -1,0 +1,34 @@
+{
+  "aws-s3-bucket": [
+    {
+      "label": "aws-s3-bucket",
+      "name": "anonymise-api-s3",
+      "tags": [
+        "s3"
+      ],
+      "instance_name": "lite-anonymise-api-s3",
+      "binding_name": "anonymise-api-s3",
+      "credentials": {
+        "bucket_name": "bucket_name_value",
+        "aws_access_key_id": "aws_access_key_id_value",
+        "aws_secret_access_key": "aws_secret_access_key_value",
+        "aws_region": "aws_region_value"
+      }
+    }
+  ],
+  "postgres": [
+    {
+      "label": "postgres",
+      "name": "anonymise-api-db",
+      "tags": [
+        "postgres",
+        "relational"
+      ],
+      "instance_name": "lite-anonymise-api-pg",
+      "binding_name": "anonymise-api-db",
+      "credentials": {
+        "uri": "postgres://postgres:password@localhost:5462/lite-api"
+      }
+    }
+  ]
+}
