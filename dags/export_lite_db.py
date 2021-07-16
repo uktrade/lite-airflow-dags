@@ -51,8 +51,8 @@ def anonymise(ds, **kwargs):
 with DAG(
     "export_lite_db",
     description="Simple tutorial DAG",
-    schedule_interval="0 12 * * *",
-    start_date=datetime(2017, 3, 20),
+    schedule_interval="0 1 * * *",
+    start_date=datetime(2021, 7, 16),
     catchup=False,
 ) as dag:
 
