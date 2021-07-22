@@ -29,6 +29,19 @@
       "credentials": {
         "uri": "postgres://postgres:password@localhost:5462/lite-api"
       }
+    },
+    {
+      "label": "postgres",
+      "name": "anonymise-hmrc-db",
+      "tags": [
+        "postgres",
+        "relational"
+      ],
+      "instance_name": "lite-anonymise-hmrc-pg",
+      "binding_name": "anonymise-hmrc-db",
+      "credentials": {
+        "uri": "postgres://postgres:password@localhost:5460/lite-api"
+      }
     }
   ]
 }

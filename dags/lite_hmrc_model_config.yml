@@ -1,0 +1,6 @@
+mail:
+  - raw_data
+mail_licencepayload:
+  - data
+mail_organisationidmapping:
+  - rpa_trader_id

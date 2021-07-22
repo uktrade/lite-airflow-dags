@@ -74,3 +74,22 @@ class DBAnonymiser:
                 new_line = self.process_line(line)
                 anon_f.write(new_line)
                 line = dump_f.readline()
+
+
+class HMRCDBAnonymiser:
+    def __init__(self):
+        self.current_table = None
+        script_dir = pathlib.Path(__file__).parent.resolve()
+        with open(os.path.join(script_dir, "lite_hmrc_model_config.yaml")) as f:
+            self.tables_to_anon = yaml.load(f, Loader=yaml.BaseLoader)
+
+    def process_line(self, line):
+        return line
+
+    def anonymise(self, outfile="lite-hmrc-dump.sql", anonfile="lite-hmrc-anonymised.sql"):
+        with open(outfile) as dump_f, open(anonfile, "w") as anon_f:
+            line = dump_f.readline()
+            while line:
+                new_line = self.process_line(line)
+                anon_f.write(new_line)
+                line = dump_f.readline()
