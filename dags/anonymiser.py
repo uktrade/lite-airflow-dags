@@ -1,8 +1,9 @@
 import os
 import pathlib
-
 import yaml
+
 from faker import Faker
+from random import randint
 
 fake = Faker()
 
@@ -79,14 +80,58 @@ class DBAnonymiser:
 class HMRCDBAnonymiser:
     def __init__(self):
         self.current_table = None
+        self.tables_to_anon = None
         script_dir = pathlib.Path(__file__).parent.resolve()
         with open(os.path.join(script_dir, "lite_hmrc_model_config.yaml")) as f:
             self.tables_to_anon = yaml.load(f, Loader=yaml.BaseLoader)
 
     def process_line(self, line):
+        if "COPY public." in line:
+            table_name, columns = line.replace("COPY public.", "").split(" (")
+            if table_name in self.tables_to_anon:
+                columns = columns.split(")")[0].split(", ")
+                self.current_table = (table_name, columns)
+                return line
+        if line == "\\.\n":
+            self.current_table = None
+            return line
+        if self.current_table:
+            cols = line.split("\t")
+            columns_to_anon = self.tables_to_anon[self.current_table[0]]
+            fields = self.current_table[1]
+            for column_to_anon in columns_to_anon:
+                if self.current_table[0] == "mail" and column_to_anon in [
+                    "raw_data",
+                    "edi_data",
+                    "sent_data",
+                ]:
+                    value = f"The content of the field {column_to_anon} is replaced with this static text"
+                elif (
+                    self.current_table[0] == "mail_licencepayload"
+                    and column_to_anon == "data"
+                ):
+                    value = "The licence payload json is replaced with this static text"
+                elif (
+                    self.current_table[0] == "mail_organisationidmapping"
+                    and column_to_anon == "rpa_trader_id"
+                ):
+                    value = "GB" + "".join(
+                        ["{}".format(randint(0, 9)) for _ in range(12)]
+                    )
+                else:
+                    value = line
+
+                index_to_change = fields.index(column_to_anon)
+                if index_to_change == len(cols) - 1:
+                    cols[fields.index(column_to_anon)] = value + "\n"
+                else:
+                    cols[fields.index(column_to_anon)] = value
+            return "\t".join(cols)
         return line
 
-    def anonymise(self, outfile="lite-hmrc-dump.sql", anonfile="lite-hmrc-anonymised.sql"):
+    def anonymise(
+        self, outfile="lite-hmrc-dump.sql", anonfile="lite-hmrc-anonymised.sql"
+    ):
         with open(outfile) as dump_f, open(anonfile, "w") as anon_f:
             line = dump_f.readline()
             while line:

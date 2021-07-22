@@ -1,5 +1,7 @@
 mail:
   - raw_data
+  - edi_data
+  - sent_data
 mail_licencepayload:
   - data
 mail_organisationidmapping:
