@@ -53,7 +53,7 @@ def anonymise_hmrc_db(ds, **kwargs):
 with DAG(
     "export_hmrc_db",
     description="Task that anonymises data in LITE-HMRC database",
-    schedule_interval="0 1 * * *",
+    schedule_interval="0 2 * * *",
     start_date=datetime(2021, 7, 16),
     catchup=False,
 ) as dag:
