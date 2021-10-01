@@ -70,9 +70,7 @@ with DAG(
     )
 
     push_to_s3_operator = PythonOperator(
-        task_id="push_to_s3",
-        python_callable=push_to_s3,
-        dag=dag,
+        task_id="push_to_s3", python_callable=push_to_s3, dag=dag,
     )
 
     delete_dumps_operator = BashOperator(
