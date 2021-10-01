@@ -31,7 +31,10 @@ class DBAnonymiser:
             fields = self.current_table[1]
             for column_to_anon in columns_to_anon:
                 value = "fake"
-                if column_to_anon == "name" and self.current_table[0] == "organisation":
+                if column_to_anon == "name" and self.current_table[0] in [
+                    "organisation",
+                    "site",
+                ]:
                     value = fake.company()
                 elif column_to_anon in [
                     "name",

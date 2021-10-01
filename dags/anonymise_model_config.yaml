@@ -34,3 +34,5 @@ end_user_advisories_enduseradvisoryquery:
   - contact_name
   - contact_email
   - contact_telephone
+site:
+  - name
