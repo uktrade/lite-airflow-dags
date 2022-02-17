@@ -27,7 +27,7 @@
       "instance_name": "lite-anonymise-api-pg",
       "binding_name": "anonymise-api-db",
       "credentials": {
-        "uri": "postgres://postgres:password@localhost:5462/lite-api"
+        "uri": "postgres://postgres:password@localhost:5462/lite-api" ,//PS-IGNORE
       }
     },
     {
@@ -40,7 +40,7 @@
       "instance_name": "lite-anonymise-hmrc-pg",
       "binding_name": "anonymise-hmrc-db",
       "credentials": {
-        "uri": "postgres://postgres:password@localhost:5460/lite-api"
+        "uri": "postgres://postgres:password@localhost:5460/lite-api" //PS-IGNORE
       }
     }
   ]
