@@ -42,18 +42,18 @@ pip install -r requirements.txt
 export $(grep -v '^#' .env | xargs)  # Export the .env file
 export VCAP_SERVICES=$(cat vcap.json)  # Export the vcap.json
 airflow db init
-airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin
+airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin #/PS-IGNORE
 airflow scheduler > scheduler_log.log &
 airflow webserver --port 8080
 ```
 
 ### Uploading the anonymised data
 
-You can manually test the dump_anonymiser by using a local copy of the 
+You can manually test the dump_anonymiser by using a local copy of the
 lite-api database.
 
 1. Run the database. `docker-compose up db`
-1. Connect and recreate the database. `psql -h localhost -p 5462 -U postgres`, 
+1. Connect and recreate the database. `psql -h localhost -p 5462 -U postgres`,
    followed by `drop database lite-api;` and then `create database lite-api;`.
 1. Upload the anonymised data.  
    `PGUSER='postgres' PGPASSWORD='password' psql -d lite-api -h localhost -p 5462 -f anonymised.sql`
@@ -80,6 +80,12 @@ distribution.
 
 3. `docker-compose up -d` will start Airflow at http://localhost:8080 along with a
    supporting postgres database and a ssh-tunnel to the oracle replica.
+
+#### Git Hub pre-commit setup
+- Install pre-commit (e.g MAC pip install pre-commit)
+- pre-commit install
+* run following to scan all files for issues
+  - pre-commit run --all-files
 
 #### .env Values
 
@@ -159,6 +165,3 @@ use exec instead e.g.:
 
 the container will
 install them on startup.
-
-
-

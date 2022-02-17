@@ -74,3 +74,6 @@ spire-local/
 /.venv/
 /.idea/
 vcap.json
+
+# pii file
+.pii-secret-hook
