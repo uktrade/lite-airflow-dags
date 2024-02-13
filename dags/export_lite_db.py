@@ -58,7 +58,7 @@ with DAG(
 
     dump_db_operator = BashOperator(
         task_id="dump_db",
-        bash_command=f"pg_dump {ANON_VARS.LITE_DB_URL} >"
+        bash_command=f"pg_dump {ANON_VARS.LITE_DB_URL} --exclude-table-data=document_data_documentdata >"
         f"{Variable.get('sql_dumpfile')}",
         dag=dag,
     )
