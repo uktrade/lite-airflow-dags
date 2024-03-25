@@ -1,3 +1,7 @@
+# NOTE: Superseded
+
+lite-airflow-dags was used for creating anonymised DB dumps for lite-api and lite-hmrc.  This has now been superseded by these projects using https://github.com/uktrade/django-db-anonymiser
+
 # Airflow DAGs for LITE
 
 DAGs go into the [dags](./dags) subdirectory.
